@@ -5,7 +5,7 @@ import { useSession, signIn, signOut } from 'next-auth/react';
 export default function MiniProfile() {
   const { data: session } = useSession();
   return (
-    <div className='flex items-center justify-between mt-14 scroll-ml-10'>
+    <div className='flex items-center justify-between mt-14 ml-10 w-full'>
       <img
         src={session?.user?.image || '/800px-Instagram_logo_2016.webp'}
         alt='user-profile-pic or instagram logo'
