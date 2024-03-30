@@ -15,6 +15,12 @@ import {
   ref,
   uploadBytesResumable,
 } from 'firebase/storage';
+import {
+  addDoc,
+  collection,
+  getFirestore,
+  serverTimestamp,
+} from 'firebase/firestore';
 
 export default function Header() {
   const { data: session } = useSession();
@@ -22,7 +28,10 @@ export default function Header() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [imageFileUrl, setImageFileUrl] = useState(null);
   const [imageFileUploading, setImageFileUploading] = useState(false);
+  const [postUploading, setPostUploading] = useState(false);
+  const [caption, setCaption] = useState('');
   const filePickerRef = useRef(null);
+  const db = getFirestore(app);
   function addImageToPost(e) {
     const file = e.target.files[0];
     if (file) {
@@ -63,6 +72,19 @@ export default function Header() {
         });
       }
     );
+  }
+  console.log(session);
+  async function handleSubmit() {
+    setPostUploading(true);
+    const docRef = await addDoc(collection(db, 'posts'), {
+      username: session.user.username,
+      caption,
+      profileImg: session.user.image,
+      image: imageFileUrl,
+      timestamp: serverTimestamp(),
+    });
+    setPostUploading(false);
+    setIsOpen(false);
   }
   return (
     <div className='shadow-sm border-b sticky top-0 bg-white z-30 p-3'>
@@ -155,9 +177,16 @@ export default function Header() {
             maxLength='150'
             placeholder='Please enter you caption...'
             className='m-4 border-none text-center w-full focus:ring-0 outline-none'
+            onChange={(e) => setCaption(e.target.value)}
           />
           <button
-            disabled
+            onClick={handleSubmit}
+            disabled={
+              !selectedFile ||
+              caption.trim() === '' ||
+              postUploading ||
+              imageFileUploading
+            }
             className='w-full bg-red-600 text-white p-2 shadow-md rounded-lg hover:brightness-105 disabled:bg-gray-200 disabled:cursor-not-allowed disabled:hover:brightness-100'
           >
             Upload Post
